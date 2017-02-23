@@ -4123,7 +4123,7 @@ sub write_source_line(*$$$$$$$)
 
         if (system("cat cov.map | fgrep '$file $line' | fgrep /mayhem_") == 0) {
             $class = "mayhemlineCov";
-        } elsif (system("cat cov.map | fgrep '$file $line' | fgrep /afl_") == 0) {
+        } elsif (system("cat cov.map | fgrep '$file $line' | fgrep /AFL_") == 0) {
             $class = "afllineCov";
         } else {
             $class = "lineCov";
