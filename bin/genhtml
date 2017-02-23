@@ -247,7 +247,7 @@ sub write_test_table_epilog(*);
 
 sub write_source($$$$$$$);
 sub write_source_prolog(*);
-sub write_source_line(*$$$$$$);
+sub write_source_line(*$$$$$$$);
 sub write_source_epilog(*);
 
 sub write_frameset(*$$$);
@@ -3210,6 +3210,14 @@ sub write_css_file()
 	  background-color: #EFE383;
 	}
 	
+        td.afllineCov,
+        span.afllineCov
+        {  background-color: red; }
+
+        td.mayhemlineCov,
+        span.mayhemlineCov
+        { background-color: blue; }
+
 	/* Source code view: format for lines which were executed */
 	td.lineCov,
 	span.lineCov
@@ -4098,9 +4106,9 @@ sub format_count($$)
 # by gen_png()
 #
 
-sub write_source_line(*$$$$$$)
+sub write_source_line(*$$$$$$$)
 {
-	my ($handle, $line, $source, $count, $converted, $brdata,
+	my ($handle, $file, $line, $source, $count, $converted, $brdata,
 	    $add_anchor) = @_;
 	my $source_format;
 	my $count_format;
@@ -4110,6 +4118,17 @@ sub write_source_line(*$$$$$$)
 	my $count_field_width = $line_field_width - 1;
 	my @br_html;
 	my $html;
+
+        my $class;
+
+        if (system("cat map | fgrep '$file $line' | fgrep mayhem_") == 0) {
+            $class = "mayhemlineCov";
+        } elsif (system("cat map | fgrep '$file $line' | fgrep afl_") == 0) {
+            $class = "afllineCov";
+        } else {
+            $class = "lineCov";
+        }
+        #print("$file $line\n");
 
 	# Get branch HTML data for this line
 	@br_html = get_branch_html($brdata) if ($br_coverage);
@@ -4131,7 +4150,7 @@ sub write_source_line(*$$$$$$)
 	}
 	else {
 		$result		= $count;
-		$source_format	= '<span class="lineCov">';
+		$source_format	= "<span class=\"$class\">";
 		$count_format	= format_count($count, $count_field_width);
 	}
 	$result .= ":".$source;
@@ -5260,7 +5279,7 @@ sub write_source($$$$$$$)
 			}
 		}
 		push (@result,
-		      write_source_line(HTML_HANDLE, $line_number,
+		      write_source_line(HTML_HANDLE, $source_filename, $line_number,
 					$_, $count_data{$line_number},
 					$converted->{$line_number},
 					$sumbrcount->{$line_number}, $add_anchor));
